@@ -212,5 +212,100 @@ PPB_BASE			0xE0000000
 	** SIO_BASE detailed **
 
 SIO registers start at base address of 0xD0000000 (SIO_BASE)
+through 0xD000017C
 
 offset:			name:				info:
+0x000			CPUID				processor core identifier
+0x004			GPIO_IN				input value for GPIO pins
+0x008			GPIO_HI_IN			input value for QSPI pins
+0x010			GPIO_OUT			GPIO output value
+0x014			GPIO_OUT_SET			GPIO output value set
+0x018			GPIO_OUT_CLR			GPIO output value clear
+0x01C			GPIO_OUT_XOR			GPIO output value XOR
+0x020			GPIO_OE				GPIO output enable
+0x024			GPIO_OE_SET			GPIO output enable set
+0x028			GPIO_OE_CLR			GPIO output enable clear
+0x02C			GPIO_OE_XOR			GPIO output enable XOR
+0x030			GPIO_HI_OUT			QSPI output value
+0x034			GPIO_HI_OUT_SET			QSPI output value set
+0x038			GPIO_HI_OUT_CLR			QSPI output value clear
+0x03C			GPIO_HI_OUT_XOR			QSPI output value XOR
+0x040			GPIO_HI_OE			QSPI output enable
+0x044			GPIO_HI_OE_SET			QSPI output enable set
+0x048			GPIO_HI_OE_CLR			QSPI output enable clear
+0x04C			GPIO_HI_OE_XOR			QSPI output enable XOR
+0x050			FIFO_ST				status register for inter-core FIFOs (mailboxes)
+0x054			FIFO_WR				write access to this core's TX FIFO
+0x058			FIFO_RD				read access to this core's RX FIFO
+0x05C			SPINLOCK_ST			spinlock state
+0x060			DIV_UDIVIDEND			divider unsigned dividend
+0x064			DIV_UDIVISOR			divider unsigned divisor
+0x068			DIV_SDIVIDEND			divider signed dividend
+0x06C			DIV_SDIVISOR			divider signed divisor
+0x070			DIV_QUOTIENT			divider result quotient
+0x074			DIV_REMAINDER			divider result remainder
+0x078			DIV_CSR				divider control and status register
+0x080			INTERP0_ACCUM0			read/write access to accumulator 0
+0x084			INTERP0_ACCUM1			read/write access to accumulator 1
+0x088			INTERP0_BASE0			read/write access to BASE0 register
+0x08C			INTERP0_BASE1			read/write access to BASE1 register
+0x090			INTERP0_BASE2			read/write access to BASE2 register
+0x094			INTERP0_POP_LANE0		read LANE0 result, and simultaneously write lane results to both accumulators (POP)
+0x098			INTERP0_POP_LANE1		read LANE1 result, and simultaneously write lane results to both accumulators (POP)
+0x09C			INTERP0_POP_FULL		read FULL result, and simultaneously write lane results to both accumulators (POP)
+0x0A0			INTERP0_PEEK_LANE0		read LANE0 result, without altering any internal state (PEEK)
+0x0A4			INTERP0_PEEK_LANE1		read LANE1 result, without altering any internal state (PEEK)
+0x0A8			INTERP0_PEEK_FULL		read FULL result, without altering any internal state (PEEK)
+0x0AC			INTERP0_CTRL_LANE0		control register for lane 0
+0x0B0			INTERP0_CTRL_LANE1		control register for lane 1
+0x0B4			INTERP0_ACCUM0_ADD		values written here are atomically added to ACCUM0
+0x0B8			INTERP0_ACCUM1_ADD		values written here are atomically added to ACCUM1
+0x0BC			INTERP0_BASE_1AND0		on write, the lower 16 bits go to BASE0, upper bits to BASE1 simultaneously
+0x0C0			INTERP1_ACCUM0			read/write access to accumulator 0
+0x0C4			INTERP1_ACCUM1			read/write access to accumulator 1
+0x0C8			INTERP1_BASE0			read/write access to BASE0 register
+0x0CC			INTERP1_BASE1			read/write access to BASE1 register
+0x0D0			INTERP1_BASE2			read/write access to BASE2 register
+0x0D4			INTERP1_POP_LANE0		read LANE0 result, and simultaneously write lane results to both accumulators (POP)
+0x0D8			INTERP1_POP_LANE1		read LANE1 result, and simultaneously write lane results to both accumulators (POP)
+0x0DC			INTERP1_POP_FULL		read FULL result, and simultaneously write lane results to both accumulators (POP)
+0x0E0			INTERP1_PEEK_LANE0		read LANE0 result without altering any internal state (PEEK)
+0x0E4			INTERP1_PEEK_LANE1		read LANE1 result without altering any internal state (PEEK)
+0x0E8			INTERP1_PEEK_FULL		read FULL without altering any internal state (PEEK)
+0x0EC			INTERP1_CTRL_LANE0		control register for lane 0
+0x0F0			INTERP1_CTRL_LANE1		control register for lane 1
+0x0F4			INTERP1_ACCUM0_ADD		values written here are atomically added to ACCUM0
+0x0F8			INTERP1_ACCUM1_ADD		values written here are atomically added to ACCUM1
+0x0FC			INTERP1_BASE_1AND0		on write, the lower 16 bits go to BASE0, upper bits to BASE1 simultaneously
+0x100			SPINLOCK0			spinlock register 0
+0x104			SPINLOCK1			spinlock register 1
+0x108			SPINLOCK2			spinlock register 2
+0x10C			SPINLOCK3			spinlock register 3
+0x110			SPINLOCK4			spinlock register 4
+0x114			SPINLOCK5			spinlock register 5
+0x118			SPINLOCK6			spinlock register 6
+0x11C			SPINLOCK7			spinlock register 7
+0x120			SPINLOCK8			spinlock register 8
+0x124			SPINLOCK9			spinlock register 9
+0x128			SPINLOCK10			spinlock register 10
+0x12C			SPINLOCK11			spinlock register 11
+0x130			SPINLOCK12			spinlock register 12
+0x134			SPINLOCK13			spinlock register 13
+0x138			SPINLOCK14			spinlock register 14
+0x13C			SPINLOCK15			spinlock register 15
+0x140			SPINLOCK16			spinlock register 16
+0x144			SPINLOCK17			spinlock register 17
+0x148			SPINLOCK18			spinlock register 18
+0x14C			SPINLOCK19			spinlock register 19
+0x150			SPINLOCK20			spinlock register 20
+0x154			SPINLOCK21			spinlock register 21
+0x158			SPINLOCK22			spinlock register 22
+0x15C			SPINLOCK23			spinlock register 23
+0x160			SPINLOCK24			spinlock register 24
+0x164			SPINLOCK25			spinlock register 25
+0x168			SPINLOCK26			spinlock register 26
+0x16C			SPINLOCK27			spinlock register 27
+0x170			SPINLOCK28			spinlock register 28
+0x174			SPINLOCK29			spinlock register 29
+0x178			SPINLOCK30			spinlock register 30
+0x17C			SPINLOCK31			spinlock register 31
