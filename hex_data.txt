@@ -185,3 +185,32 @@ RTC_BASE			0x4005C000
 ROSC_BASE			0x40060000
 VREG_AND_CHIP_RESET_BASE	0x40064000
 TBMAN_BASE			0x4006C000
+
+AHB-Lite Peripherals:
+DMA_BASE			0x50000000
+
+
+USB has a DPRAM at its based followed by registers:
+USBCTRL_BASE			0x50100000
+USBCTRL_DPRAM_BASE		0x50100000
+USBCTRL_REGS_BASE		0x50110000
+
+Remaining AHB-Lite peripherals:
+PIO0_BASE			0x50200000
+PIO1_BASE			0x50300000
+XIP_AUX_BASE			0x50400000
+
+IOPORT peripherals:
+SIO_BASE			0xD0000000
+ -- word aligned addresses in range:
+0xD0000000 - 0xD000017C 	-- SEE SIO_BASE detailed section
+
+Cortex-M0+ internal peripherals
+PPB_BASE			0xE0000000
+
+
+	** SIO_BASE detailed **
+
+SIO registers start at base address of 0xD0000000 (SIO_BASE)
+
+offset:			name:				info:
