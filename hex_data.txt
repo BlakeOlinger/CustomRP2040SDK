@@ -216,13 +216,49 @@ through 0xD000017C
 
 offset:			name:				info:
 0x000			CPUID				processor core identifier
+31:0			value is 0 when read from processor core 0,			RO
+                        1 when read from processor core 1
+
 0x004			GPIO_IN				input value for GPIO pins
+31:30			reserved
+29:0			input value for GPIO0-29					RO		0x00000000
+
 0x008			GPIO_HI_IN			input value for QSPI pins
+31:6			reserved
+5:0			input value on QSPI IO in order 0-5:				RO		0x00
+			SCLK, SSn, SD0, SD1, SD2, SD3
+
 0x010			GPIO_OUT			GPIO output value
+31:30			reserved
+29:0			set output level (1/0, high/low) for GPIO0-29			RW		0x00000000
+			reading back gives the last value written, NOT the input
+			value from the pins.
+			If core 0 and core 1 both write to GPIO_OUT simultaneously
+			(or to a SET/CLR/XOR alias), the result is as though the
+			write from core 0 took place first, and the write from
+			core 1 was then applied to that intermediate result
+
 0x014			GPIO_OUT_SET			GPIO output value set
+31:30			reserved
+29:0			perform an atomic bit-set on GPIO_OUT				WO		0x00000000
+
 0x018			GPIO_OUT_CLR			GPIO output value clear
+31:30			reserved
+29:0			perform an atomic bit-clear on GPIO_OUT				WO		0x00000000
+
 0x01C			GPIO_OUT_XOR			GPIO output value XOR
+31:30			reserved
+29:0			perform an atomic bitwise XOR on GPIO_OUT			WO		0x00000000
+
 0x020			GPIO_OE				GPIO output enable
+31:30			reserved
+29:0			set output enable (1/0, output/input) for GPIO0-29
+			reading back gives the last value written
+			if core 0 and core 1 both write to GPIO_OE simultaneously
+			(or to a SET/CLR/XOR alias), the result is as though the
+			write from core 0 took place first, then the write from
+			core 1 was applied to teh intermediate result
+
 0x024			GPIO_OE_SET			GPIO output enable set
 0x028			GPIO_OE_CLR			GPIO output enable clear
 0x02C			GPIO_OE_XOR			GPIO output enable XOR
