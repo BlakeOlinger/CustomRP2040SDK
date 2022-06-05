@@ -13,7 +13,7 @@ Addr + 0x2000
 Addr + 0x3000
 
 
-	** List of Registers **
+	** Bus Fabric Register List **
  * NOTE: all mnemonics are not mine but the official SDK
 
  * bus fabric registers start at a base address of:
@@ -23,12 +23,165 @@ Addr + 0x3000
 offset:
 0x00
 
-bits:
-31:13			reserved
-12			DMA_W		0 - low priority, 1 - high priority
+bits:										reset:		type:
+31:13			reserved	
+12			DMA_W		0 - low priority, 1 - high priority	0x0		RW
 11:9			reserved
-8			DMA_R		0 - low priority, 1 - high priority
+8			DMA_R		0 - low priority, 1 - high priority	0x0		RW
 7:5			reserved
-4			PROC1		0 - low priority, 1 - high priority
+4			PROC1		0 - low priority, 1 - high priority 	0x0		RW
 3:1			reserved
-0			PROC0		0 - low priority, 1 - high priority
+0			PROC0		0 - low priority, 1 - high priority	0x0		RW
+
+ * BUS_PRIORITY_ACK -- bus priority acknowledge
+offset:
+0x04
+
+bits:										reset:		type:
+31:1			reserved
+0					Is 1 once all arbiters have registered	0x0		RO
+                                        new priority levels. Arbiters update
+                                        when servicing a new nonsequential
+                                        access. Normally, this will happen
+                                        effectively immediately.
+
+ * PERFCTR0 -- bus fabric performance counter 0
+offset:
+0x08
+
+bits:										reset:		type:
+31:24			reserved
+23:0					count some event signal from the	0x0		WC
+                                        busfabric arbtiers. Write any value
+                                        to clear. Select an event to count
+					with PERFSEL0.
+
+ * PERFSEL0 -- bus fabric performance event select for PERFCTR0
+offset:
+0x0C
+
+select an event for PERFCTR0. count either contested access, or all accessses,
+on a downstream port of the main crossbar
+
+bits:										reset:		type:
+31:5			reserved
+4:0			0x00		apb_contested				0x1F		RW
+			0x01		apb
+			0x02		fastperi_contested
+			0x03		fastperi
+			0x04		sram5_contested
+			0x05		sram5
+			0x06		sram4_contested
+			0x07		sram4
+			0x08		sram3_contested
+			0x09		sram3
+			0x0A		sram2_contested
+			0x0B		sram2
+			0x0C		sram1_contested
+			0x0D		sram1
+			0x0E		sram0_contested
+			0x0F		sram0
+			0x10		xip_main_contested
+			0x11		xip_main
+			0x12		rom_contested
+			0x13		rom
+
+ * PERFCTR1 -- see PERFCTR0
+offset:
+0x10
+
+ * PERFSEL1 -- see PERFSEL0
+offset:
+0x14
+
+ * PERFCTR2 -- see PERFCTR0
+offset:
+0x18
+
+ * PERFSEL2 -- see PERFSEL0
+offset:
+0x1C
+
+ * PERFCTR3 -- see PERFCTR0
+offset:
+0x20
+
+ * PERFSEL3 -- see PERFSEL0
+offset:
+0x24
+
+	** Address Map **
+
+The address map is split into the following sections.
+Unmapped address ranges raise a bus error when accessed.
+
+section:			base address:
+ROM				0x00000000
+XIP				0x10000000
+SRAM				0x20000000
+APB Peripherals			0x40000000
+AHB-Lite Peripherals		0x50000000
+IOPORT Registers		0xD0000000
+Cortex-M0+ internal registers	0xE0000000
+
+
+ ** detailed view **
+
+ROM:
+ROM_BASE			0x00000000
+
+XIP:
+XIP_BASE			0x10000000
+XIP_NOALLOC_BASE		0x11000000
+XIP_NOCACHE_BASE		0x12000000
+XIP_NOCACHE_NOALLOC_BASE	0x13000000
+XIP_CTRL_BASE			0x14000000
+XIP_SRAM_BASE			0x15000000
+XIP_SRAM_END			0x15004000
+XIP_SSI_BASE			0x18000000
+
+
+SRAM. SRAM0-3 striped:
+SRAM_BASE			0x20000000
+SRAM_STRIPED_BASE		0x20000000
+SRAM_STRIPED_END		0x20040000
+
+SRAM 4-5 always non-striped:
+SRAM4_BASE			0x20040000
+SRAM5_BASE			0x20041000
+SRAM_END			0x20042000
+
+Non striped aliases of SRAM0-3:
+SRAM0_BASE			0x21000000
+SRAM1_BASE			0x21010000
+SRAM2_BASE			0x21020000
+SRAM3_BASE			0x21030000
+
+APB Peripherals:
+SYSINFO_BASE			0x40000000
+SYSCFG_BASE			0x40004000
+CLOCKS_BASE			0x40008000
+RESETS_BASE			0x4000C000
+PSM_BASE			0x40010000
+IO_BANK0_BASE			0x40014000
+IO_QSPI_BASE			0x40018000
+PADS_BANK0_BASE			0x4001C000
+PADS_QSPI_BASE			0x40020000
+XOSC_BASE			0x40024000
+PLL_SYS_BASE			0x40028000
+PLL_USB_BASE			0x4002C000
+BUSCTRL_BASE			0x40030000
+UART0_BASE			0x40034000
+UART1_BASE			0x40038000
+SPI0_BASE			0x4003C000
+SPI1_BASE			0x40040000
+I2C0_BASE			0x40044000
+I2C1_BASE			0x40048000
+ADC_BASE			0x4004C000
+PWM_BASE			0x40050000
+TIMER_BASE			0x40054000
+WATCHDOG_BASE			0x40058000
+RTC_BASE			0x4005C000
+ROSC_BASE			0x40060000
+VREG_AND_CHIP_RESET_BASE	0x40064000
+TBMAN_BASE			0x4006C000
