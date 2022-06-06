@@ -214,19 +214,24 @@ PPB_BASE			0xE0000000
 SIO registers start at base address of 0xD0000000 (SIO_BASE)
 through 0xD000017C
 
+NOTE: for the SIO GPIO to drive the GPIO the SIO function must be set for that pin for SIO to drive (perform IO) the GPIO (F5)
+      but input is always connected, meaning software can check the state of the GPIOs at any time
+
 offset:			name:				info:
 0x000			CPUID				processor core identifier
 31:0			value is 0 when read from processor core 0,			RO
                         1 when read from processor core 1
+			meaning: core 0 reads 0, core 1 reads 1
+			this is usefull for software to determine which core it's running on
 
 0x004			GPIO_IN				input value for GPIO pins
 31:30			reserved
-29:0			input value for GPIO0-29					RO		0x00000000
+29:0			input value for GPIO0-29 (starting at LSB)			RO		0x00000000
 
 0x008			GPIO_HI_IN			input value for QSPI pins
 31:6			reserved
 5:0			input value on QSPI IO in order 0-5:				RO		0x00
-			SCLK, SSn, SD0, SD1, SD2, SD3
+			SCLK (0), SSn, SD0, SD1, SD2, SD3 (5)
 
 0x010			GPIO_OUT			GPIO output value
 31:30			reserved
@@ -604,7 +609,7 @@ NOTES:			there is one FIFO in the core 0 to core 1 direction, and one for the co
 			return 0 if lock is already locked
 			return non-zero and sumultaneously claim the lock
 			writing (any value) releases the lock
-			if core 0 and core 1 attempt to claim teh same lock simultaneously:
+			if core 0 and core 1 attempt to claim the same lock simultaneously:
 			core 0 wins
 			the value returned on success is 0x1 << lock number
 
