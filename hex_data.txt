@@ -260,26 +260,136 @@ offset:			name:				info:
 			core 1 was applied to teh intermediate result
 
 0x024			GPIO_OE_SET			GPIO output enable set
+31:30			reserved
+29:0			atomic bit-set on GPIO_OE					WO		0x00000000
+
 0x028			GPIO_OE_CLR			GPIO output enable clear
+31:30			reserved
+29:0			atomic bit-clear on GPIO_OE					WO		0x00000000
+
 0x02C			GPIO_OE_XOR			GPIO output enable XOR
+31:30			reserved
+29:0			atomic bitwise XOR on GPIO_OE					WO		0x00000000	
+
 0x030			GPIO_HI_OUT			QSPI output value
+31:6			reserved
+5:0			set output level (1/0, high/low) for QSPI IO0-5			RW		0x00 (5:0)
+			reading back gives the last value written, NOT the input
+			value from the pins
+			if core 0 and core 1 both write to GPIO_HI_OUT simultaneously
+			(or to an alias via SET/CLR/XOR), the result is as though
+			the write from core 0 took place first, then the write from
+			core 1 was applied to that intermediate result
+
 0x034			GPIO_HI_OUT_SET			QSPI output value set
+31:6			reserved
+5:0			atomic bit-set on GPIO_HI_OUT					WO		0x00 (5:0)
+
 0x038			GPIO_HI_OUT_CLR			QSPI output value clear
+31:6			reserved
+5:0			atomic bit-clear on GPIO_HI_OUT					WO		0x00
+
 0x03C			GPIO_HI_OUT_XOR			QSPI output value XOR
+31:6			reserved
+5:0			atomic bitwise XOR on GPIO_HI_OUT				WO		0x00
+
 0x040			GPIO_HI_OE			QSPI output enable
+31:6			reserved
+5:0			set output enable (1/0, output/input) for QSPI IO0-5		RW		0x00
+			reading back gives the last value written
+			if core 0 and 1 both write to GPIO_HI_OE simultaneously
+			(or to an alias, SET/CLR/XOR), the result is as though
+			core 0 writes first then core 1
+
 0x044			GPIO_HI_OE_SET			QSPI output enable set
+31:6			reserved
+5:0			atomic bit-set on GPIO_HI_OE					WO		0x00
+
 0x048			GPIO_HI_OE_CLR			QSPI output enable clear
+31:6			reserved
+5:0			atomic bit-clear on GPIO_HI_OE					WO		0x00
+
 0x04C			GPIO_HI_OE_XOR			QSPI output enable XOR
+31:6			reserved
+5:0			atomic bitwise XOR on GPIO_HI_OE				WO		0x00
+
 0x050			FIFO_ST				status register for inter-core FIFOs (mailboxes)
+NOTES:			there is one FIFO in the core 0 to core 1 direction, and one for the core 1 to core 0 direction
+			both are 32 bits wide and 8 words deep
+			core 0 can see the read side of 1 -> 0 FIFO (RX), and the write side of 0 -> 1 FIFO (TX)
+			core 1 can see the read side of 0 -> 1 FIFO (RX), and the write side of 1 -> 0 FIFO (TX)
+			the SIO IRQ for each core is the logical OR of the VLD, WOF, ROE fields of the FIFO_ST register
+31:4			reserved
+3			ROE				sticky flag indicating the RX	WC		0x0
+							FIFO was read when empty
+							this read was ignored by the 
+							FIFO
+2			WOF				sticky flag indicating the TX 	WC		0x0
+							FIFO was written when full
+							this write was ignored by the
+							FIFO
+1			RDY				values is 1 if this core's TX 	RO		0x1
+							FIFO is not full, for example:
+							if FIFO_WR is ready for more
+							data
+0			VLD				value is 1 if this core's RX	RO		0x0
+							FIFO is not empty, example:
+							FIFO_RD is valid
+
 0x054			FIFO_WR				write access to this core's TX FIFO
+31:0			write access to this core's TX FIFO				WF		0x00000000
+
 0x058			FIFO_RD				read access to this core's RX FIFO
+31:0			read access to this core's RX FIFO				RF		0x00000000
+
 0x05C			SPINLOCK_ST			spinlock state
+31:0			a bitmap containing the state of all 32 spinlocks		RO		0x00000000
+			1 == locked
+			mainly intended for debugging
+
 0x060			DIV_UDIVIDEND			divider unsigned dividend
+31:0			write to the DIVIDEND operand of the divider:			RW		0x000000000
+			p in (p / q)
+			any operand write starts a new calculation
+			the results appear in QUOTIENT and REMAINDER
+			UDIVIDEND/SDIVIDEND are aliases of the same internal register
+			the U alias starts an unsigned calculation
+			the S alias starts a signed calculation
+
 0x064			DIV_UDIVISOR			divider unsigned divisor
+31:0			write to the DIVISOR operand of the divider			RW		0x000000000
+			q in (p / q)
+
 0x068			DIV_SDIVIDEND			divider signed dividend
+31:0			the same as UDIVIDEND						RW		0x00000000
+			but starts a signed calculation
+
 0x06C			DIV_SDIVISOR			divider signed divisor
+31:0			the same as UDIVISOR						RW		0x00000000
+			but starts a signed calculation
+
 0x070			DIV_QUOTIENT			divider result quotient
+31:0			the result of (DIVIDEND / DIVISOR) (division)			RW		0x00000000
+			contents undefined while CSR_READY is low
+			for signed calculations:
+			QUOTIENT is negative when the signs of DIVIDEND and
+			DIVISOR differ
+			this register can be written to directly, for context
+			save/restore purposes. this halts any in-progress
+			calculation and sets the CSR_READY and CSR_DIRTY flags
+			reading from QUOTIENT clears the CSR_DIRTY flag, meaning
+			should read results in the order:
+			REMAINDER, QUOTIENT if CSR_DIRTY is used
+
 0x074			DIV_REMAINDER			divider result remainder
+31:0			the result of DIVIDEND % DIVISOR (modulo)			RW		0x00000000
+			contents undefined while CSR_READY is low
+			for signed calculations:
+			REMAINDER is negative only when DIVIDEND is negative
+			this register can be written to directly, for context
+			save/restore purposes, this halts any in-progress
+			calculation and sets the CSR_READY and CSR_DIRTY flags
+
 0x078			DIV_CSR				divider control and status register
 0x080			INTERP0_ACCUM0			read/write access to accumulator 0
 0x084			INTERP0_ACCUM1			read/write access to accumulator 1
