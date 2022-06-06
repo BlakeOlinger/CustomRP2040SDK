@@ -391,39 +391,223 @@ NOTES:			there is one FIFO in the core 0 to core 1 direction, and one for the co
 			calculation and sets the CSR_READY and CSR_DIRTY flags
 
 0x078			DIV_CSR				divider control and status register
+31:2			reserved
+1			DIRTY				changes to 1 when any register	RO		0x0
+							is written, and back to 0 when
+							QUOTIENT is read
+							software can use this flag to
+							make save/restore more efficient
+							(skip if not DIRTY)
+							if the flag is used this way:
+							either read QUOTIENT only, or
+							REMAINDER then QUOTIENT, to
+							prevent data loss on conext switch
+0			READY				reads 0 when calculation is	RO		0x1
+							in progress, 1 otherwise
+							writing an operand xDIVIDEND,
+							xDIVISOR, will immediately
+							start a new calcualtion, no
+							matter if one is already in
+							progress.
+							writing to a result register
+							will immediately terminate any
+							in-progress calculation and
+							set the READY and DIRTY flags
+
 0x080			INTERP0_ACCUM0			read/write access to accumulator 0
+31:0			read/write access to accumulator 0				RW		0x00000000
+
 0x084			INTERP0_ACCUM1			read/write access to accumulator 1
+31:0											RW		0x00000000
+
 0x088			INTERP0_BASE0			read/write access to BASE0 register
+31:0											RW		0x00000000
+
 0x08C			INTERP0_BASE1			read/write access to BASE1 register
+31:0											RW		0x00000000
+
 0x090			INTERP0_BASE2			read/write access to BASE2 register
+31:0											RW		0x00000000
+
 0x094			INTERP0_POP_LANE0		read LANE0 result, and simultaneously write lane results to both accumulators (POP)
+31:0											RO		0x00000000
+
 0x098			INTERP0_POP_LANE1		read LANE1 result, and simultaneously write lane results to both accumulators (POP)
+31:0											RO		0x00000000
+
 0x09C			INTERP0_POP_FULL		read FULL result, and simultaneously write lane results to both accumulators (POP)
+31:0											RO		0x00000000
+
 0x0A0			INTERP0_PEEK_LANE0		read LANE0 result, without altering any internal state (PEEK)
+31:0											RO		0x00000000
+
 0x0A4			INTERP0_PEEK_LANE1		read LANE1 result, without altering any internal state (PEEK)
+31:0											RO		0x00000000
+
 0x0A8			INTERP0_PEEK_FULL		read FULL result, without altering any internal state (PEEK)
+31:0											RO		0x00000000
+
 0x0AC			INTERP0_CTRL_LANE0		control register for lane 0
+31:26			reserved
+25			OVERF				set if either OVERF0 or		RO		0x0
+							OVERF1 is set
+24			OVERF1				indicates if any masked-off	RO		0x0
+							MSBs in ACCUM1 are set
+23			OVERF0				indicates if any masked-off	RO		0x0
+							MSBs in ACCUM0 are set
+22			reserved
+21			BLEND				only present on INTERP0 on	RW		0x0
+							on each core
+							if blend mode is enabled:
+							LANE1 result is a linear interpolation between BASE0
+							and BASE1, controlled by the 8LSBs of lane 1 shift and mask
+							value (a fractional number between 0 and 255/256ths)
+							LANE0 result does not have BASE0 added, (yields only
+							the 8 LSBs of lane 1 shift + mask value)
+							FULL result does not have lane 1 shift + mask value added (BASE2 + lane 0 shift + mask)
+							LANE1 SIGNED flag controls whether the interpolation is signed or unsigned
+20:19			FORCE_MSB			(OR)ed (||) into bits 29:28	RW		0x0
+							of the lane result presented to the processor on the bus
+							No effect on the internal 32-bit datapath
+							handy for using a lane to generate sequence of pointers
+							into flash or SRAM
+18			ADD_RAW				if set mask + shift is bypassed	RW		0x0
+							for LANE0 result
+							this does not affect FULL result
+17			CROSS_RESULT			if set, feed the opposiste	RW		0x0
+							lane's result into this lane's
+							accumulator on POP
+16			CROSS_INPUT			if set, feed the opposite	RW		0x0
+							lane's accumulator into this lane's
+							shift + mask hardware
+							takes effect even if ADD_RAW is set
+							(the CROSS_INPUT mux is before the shift + mask bypass)
+15			SIGNED				if SIGNED is set:		RW		0x0
+							the shifted and masked accumulator value
+							is sign-extended to 32 bits before
+							adding to BASE0
+							LANE0 PEEK/POP appear extended to 32 bits when read by the processor
+14:10			MASK_MSB			the most-significant bit	RW		0x00
+							allowed to pass by the mask (inclusive)
+							setting MSB < LSB may cause chip to turn inside out
+9:5			MASK_LSB			the least-significant bit	RW		0x00
+							allowed to pass by the mask (inclusive)
+4:0			SHIFT				logical right-shift applied	RW		0x00
+							to accumulator before masking
+
 0x0B0			INTERP0_CTRL_LANE1		control register for lane 1
+31:21			reserved
+20:19			FORCE_MSB			see FORCE_MSB x_CTRL_LANE0	RW		0x00
+18			ADD_RAW				if set, mask + shift is		RW		0x0
+							bypassed for LANE1 result
+							this does not affect FULL result
+17			CROSS_RESULT			see CROSS_RESULT x_CTRL_LANE0	RW		0x0
+16			CROSS_INPUT			see CROSS_INPUT x_CTRL_LANE0	RW		0x0
+15			SIGNED				if SIGNED is set,		RW		0x0
+							the shifted and masked accumulator value is
+							signed-extended to 32 bits before adding to BASE1
+							LANE1 PEEK/POP appear extended to 32 bits when read by processor
+14:10			MASK_MSB			see MASK_MSB in x_CTRL_LANE0	RW		0x00
+9:5			MASK_LSB			see MASK_LSB in x_CTRL_LANE0	RW		0x00
+4:0			SHIFT				see SHIFT in x_CTRL_LANE0	RW		0x00
+
 0x0B4			INTERP0_ACCUM0_ADD		values written here are atomically added to ACCUM0
+31:24			reserved
+23:0			values written here are atomically added to ACCUM0		RW		0x000000 (23:0)
+			reading yields lane 0's raw shift and mask value (BASE0 not added)
+
 0x0B8			INTERP0_ACCUM1_ADD		values written here are atomically added to ACCUM1
+31:24			reserved
+23:0			values written here are atomically added to ACCUM1		RW		0x000000
+			reading yields lane 1's raw shift and mask value (BASE1 not added)
+
 0x0BC			INTERP0_BASE_1AND0		on write, the lower 16 bits go to BASE0, upper bits to BASE1 simultaneously
+31:0			each half is sign-extended to 32 bits if that			WO		0x00000000
+			lane's SIGNED flag is set
+
 0x0C0			INTERP1_ACCUM0			read/write access to accumulator 0
+31:0											RW		0x00000000
+
 0x0C4			INTERP1_ACCUM1			read/write access to accumulator 1
+31:0											RW		0x00000000
+
 0x0C8			INTERP1_BASE0			read/write access to BASE0 register
+31:0											RW		0x00000000
+
 0x0CC			INTERP1_BASE1			read/write access to BASE1 register
+31:0											RW		0x00000000
+
 0x0D0			INTERP1_BASE2			read/write access to BASE2 register
+31:0											RW		0x00000000
+
 0x0D4			INTERP1_POP_LANE0		read LANE0 result, and simultaneously write lane results to both accumulators (POP)
+31:0											RO		0x00000000
+
 0x0D8			INTERP1_POP_LANE1		read LANE1 result, and simultaneously write lane results to both accumulators (POP)
+31:0											RO		0x00000000
+
 0x0DC			INTERP1_POP_FULL		read FULL result, and simultaneously write lane results to both accumulators (POP)
+31:0											RO		0x00000000
+
 0x0E0			INTERP1_PEEK_LANE0		read LANE0 result without altering any internal state (PEEK)
+31:0											RO		0x00000000
+
 0x0E4			INTERP1_PEEK_LANE1		read LANE1 result without altering any internal state (PEEK)
+31:0											RO		0x00000000
+
 0x0E8			INTERP1_PEEK_FULL		read FULL without altering any internal state (PEEK)
+31:0											RO		0x00000000
+
 0x0EC			INTERP1_CTRL_LANE0		control register for lane 0
+31:26			reserved
+25			OVERF				set if either OVERF0 or		RO		0x0
+							OVERF1 is set
+24			OVERF1				indicates if any masked-off	RO		0x0
+							MSBs in ACCUM1 are set
+23			OVERF2				indicates if any masked-off	RO		0x0
+							MSBs in ACCUM0 are set
+22			CLAMP				only present on INTERP1		RW		0x0
+							on each core
+							if CLAMP is enabled:
+							LANE0 result is shifted and masked ACCUM0
+							clamped by a lower bound of BASE0 and and upper bound of BASE1
+							Signedness of these comparisons is determined by LANE0_CTRL_SIGNED
+21			reserved
+20:19			FORCE_MSB			see FORCE_MSB x_CTRL_LANE0	RW		0x0
+18			ADD_RAW				if set, mask + shift is		RW		0x0
+							bypassed for LANE0 result
+							does not affect FULL result
+17			CROSS_RESULT			see CROSS_RESULT x_CTRL_LANE0	RW		0x0
+16			CROSS_INPUT			see CROSS_INPUT x_CTRL_LANE0	RW		0x0
+15			SIGNED				see SIGNED x_CTRL_LANE0		RW		0x0
+14:10			MASK_MSB			see MASK_MSB x_CTRL_LANE0	RW		0x00
+9:5			MASK_LSB							RW		0x00
+4:0			SHIFT								RW		0x00
+
 0x0F0			INTERP1_CTRL_LANE1		control register for lane 1
+(see INTERP0_CTRL_LANE1)
+
 0x0F4			INTERP1_ACCUM0_ADD		values written here are atomically added to ACCUM0
+31:24			reserved
+23:0			see INTERP0..							RW		0x000000
+
 0x0F8			INTERP1_ACCUM1_ADD		values written here are atomically added to ACCUM1
+31:24			reserved
+23:0			see INTERP0..							RW		0x000000
+
 0x0FC			INTERP1_BASE_1AND0		on write, the lower 16 bits go to BASE0, upper bits to BASE1 simultaneously
+31:0			see INTERP0..							WO		0x00000000
+
 0x100			SPINLOCK0			spinlock register 0
+(for each spinlock register)
+31:0			reading will:							RW		0x00000000
+			return 0 if lock is already locked
+			return non-zero and sumultaneously claim the lock
+			writing (any value) releases the lock
+			if core 0 and core 1 attempt to claim teh same lock simultaneously:
+			core 0 wins
+			the value returned on success is 0x1 << lock number
+
 0x104			SPINLOCK1			spinlock register 1
 0x108			SPINLOCK2			spinlock register 2
 0x10C			SPINLOCK3			spinlock register 3
